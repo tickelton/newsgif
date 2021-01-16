@@ -1,3 +1,4 @@
+
 SRCDIR = .
 BUILDDIR = build
 
@@ -8,10 +9,12 @@ all: $(BIN)
 $(BUILDDIR):
 	@[ -d $(BUILDDIR) ] || mkdir $(BUILDDIR)
 
-$(BIN): $(BUILDDIR)
+$(BIN): $(BUILDDIR) FORCE
 	go build -o $(BIN)
 
 run:
 	./$(BIN)
 clean:
 	@rm -rf $(BUILDDIR)
+
+FORCE:
