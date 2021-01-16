@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const itn_url = "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Template:In_the_news&rvslots=*&rvprop=content&formatversion=2&format=json"
+const itnUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Template:In_the_news&rvslots=*&rvprop=content&formatversion=2&format=json"
 const (
 	Error   = 1
 	Warning = 2
@@ -32,24 +32,33 @@ func init() {
 
 func main() {
 
-	fmt.Println(itn_url)
-	resp, err := http.Get(itn_url)
+	fmt.Println(itnUrl)
+	resp, err := http.Get(itnUrl)
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer resp.Body.Close()
-	body_raw, _ := ioutil.ReadAll(resp.Body)
+	bodyRaw, _ := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
-	var body_json map[string]interface{}
-	json.Unmarshal([]byte(body_raw), &body_json)
+	var bodyJson map[string]interface{}
+	json.Unmarshal([]byte(bodyRaw), &bodyJson)
 
 	if verbose >= Trace {
-		body_json_pretty, err := json.MarshalIndent(body_json, "", "  ")
+		bodyJsonPretty, err := json.MarshalIndent(bodyJson, "", "  ")
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(string(body_json_pretty))
+		fmt.Println(string(bodyJsonPretty))
+	}
+
+	for k, v := range bodyJson["query"].(map[string]interface{}) {
+		fmt.Println("xx", k, "yy", v, "zz")
+		if k == "pages" {
+			for k2, v2 := range v.([]interface{}) {
+				fmt.Println("xxx", k2, "yyy", v2, "zzz")
+			}
+		}
 	}
 }
