@@ -30,9 +30,40 @@ func init() {
 	}
 }
 
+/*
+func valueOf(v interface{}, key string) string {
+	data := v.(map[string]interface{})
+
+	for k, v := range data {
+		switch v := v.(type) {
+		case string:
+			if k == key {
+				return v
+			}
+			fmt.Println(k, v, "(string)")
+		case float64:
+			fmt.Println(k, v, "(float64)")
+		case []interface{}:
+			fmt.Println(k, "(array):")
+			for i, u := range v {
+				fmt.Println("    ", i, u)
+			}
+		case map[string]interface{}:
+			fmt.Println(k, "(map):")
+		default:
+			fmt.Println(k, v, "(unknown)")
+		}
+	}
+
+	return "foo"
+}
+*/
+
 func main() {
 
-	fmt.Println(itnUrl)
+	if verbose >= Debug {
+		fmt.Println(itnUrl)
+	}
 	resp, err := http.Get(itnUrl)
 	if err != nil {
 		fmt.Println(err)
@@ -44,6 +75,9 @@ func main() {
 	}
 	var bodyJson map[string]interface{}
 	json.Unmarshal([]byte(bodyRaw), &bodyJson)
+	if verbose >= Debug {
+		fmt.Println(bodyJson)
+	}
 
 	if verbose >= Trace {
 		bodyJsonPretty, err := json.MarshalIndent(bodyJson, "", "  ")
@@ -53,12 +87,7 @@ func main() {
 		fmt.Println(string(bodyJsonPretty))
 	}
 
-	for k, v := range bodyJson["query"].(map[string]interface{}) {
-		fmt.Println("xx", k, "yy", v, "zz")
-		if k == "pages" {
-			for k2, v2 := range v.([]interface{}) {
-				fmt.Println("xxx", k2, "yyy", v2, "zzz")
-			}
-		}
-	}
+	var content = bodyJson["query"].(map[string]interface{})["pages"].([]interface{})[0].(map[string]interface{})["revisions"].([]interface{})[0].(map[string]interface{})["slots"].(map[string]interface{})["main"].(map[string]interface{})["content"]
+
+	fmt.Println(content)
 }
