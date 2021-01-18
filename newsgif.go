@@ -9,7 +9,6 @@ import (
 	"strings"
 )
 
-//const itnUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Template:In_the_news&rvslots=*&rvprop=content&formatversion=2&format=json"
 const itnUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=Template:In_the_news&formatversion=2&prop=extracts&exintro&explaintext&format=json"
 const (
 	Error   = 1
@@ -31,35 +30,6 @@ func init() {
 		verbose = Trace
 	}
 }
-
-/*
-func valueOf(v interface{}, key string) string {
-	data := v.(map[string]interface{})
-
-	for k, v := range data {
-		switch v := v.(type) {
-		case string:
-			if k == key {
-				return v
-			}
-			fmt.Println(k, v, "(string)")
-		case float64:
-			fmt.Println(k, v, "(float64)")
-		case []interface{}:
-			fmt.Println(k, "(array):")
-			for i, u := range v {
-				fmt.Println("    ", i, u)
-			}
-		case map[string]interface{}:
-			fmt.Println(k, "(map):")
-		default:
-			fmt.Println(k, v, "(unknown)")
-		}
-	}
-
-	return "foo"
-}
-*/
 
 func main() {
 
@@ -89,16 +59,11 @@ func main() {
 		fmt.Println(string(bodyJsonPretty))
 	}
 
-	//	var content = bodyJson["query"].(map[string]interface{})["pages"].([]interface{})[0].(map[string]interface{})["revisions"].([]interface{})[0].(map[string]interface{})["slots"].(map[string]interface{})["main"].(map[string]interface{})["extract"].(string)
 	content, _ := bodyJson["query"].(map[string]interface{})["pages"].([]interface{})[0].(map[string]interface{})["extract"].(string)
 
 	// TODO: needs error handling
 	//fmt.Println(ok, content)
 
 	newsLines := strings.Split(strings.TrimSuffix(content, "\n"), "\n")
-	for _, v := range newsLines {
-		fmt.Println(v, "\n")
-	}
-
 	fmt.Println(len(newsLines), cap(newsLines), newsLines[2])
 }
