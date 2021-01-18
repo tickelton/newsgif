@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
-const itnUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Template:In_the_news&rvslots=*&rvprop=content&formatversion=2&format=json"
+//const itnUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=Template:In_the_news&rvslots=*&rvprop=content&formatversion=2&format=json"
+const itnUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=Template:In_the_news&formatversion=2&prop=extracts&exintro&explaintext&format=json"
 const (
 	Error   = 1
 	Warning = 2
@@ -87,7 +89,16 @@ func main() {
 		fmt.Println(string(bodyJsonPretty))
 	}
 
-	var content = bodyJson["query"].(map[string]interface{})["pages"].([]interface{})[0].(map[string]interface{})["revisions"].([]interface{})[0].(map[string]interface{})["slots"].(map[string]interface{})["main"].(map[string]interface{})["content"]
+	//	var content = bodyJson["query"].(map[string]interface{})["pages"].([]interface{})[0].(map[string]interface{})["revisions"].([]interface{})[0].(map[string]interface{})["slots"].(map[string]interface{})["main"].(map[string]interface{})["extract"].(string)
+	content, _ := bodyJson["query"].(map[string]interface{})["pages"].([]interface{})[0].(map[string]interface{})["extract"].(string)
 
-	fmt.Println(content)
+	// TODO: needs error handling
+	//fmt.Println(ok, content)
+
+	newsLines := strings.Split(strings.TrimSuffix(content, "\n"), "\n")
+	for _, v := range newsLines {
+		fmt.Println(v, "\n")
+	}
+
+	fmt.Println(len(newsLines), cap(newsLines), newsLines[2])
 }
