@@ -74,6 +74,25 @@ func getHeadlines() []string {
 	return newsLines
 }
 
+func drawNewsLine(idx int, text string, width int, height int, dc *gg.Context) {
+
+	const stroke = 1
+	topOffset := 80 + 24*idx
+	//stringWidth, _ := fmt.Println(dc.MeasureString(text))
+
+	dc.SetRGBA(0, 0, 0, 1)
+	for dy := -stroke; dy <= stroke; dy++ {
+		for dx := -stroke; dx <= stroke; dx++ {
+			x := float64(width/2) + float64(dx)
+			y := float64(topOffset) + float64(dy)
+			dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
+		}
+	}
+
+	dc.SetRGBA(1, 1, 1, 1)
+	dc.DrawStringAnchored(text, float64(width/2), float64(topOffset), 0.5, 0.5)
+}
+
 func main() {
 
 	//	newsLines := getHeadlines()
@@ -126,6 +145,11 @@ func main() {
 		delays = append(delays, 20)
 	*/
 
+	//var line1 = "Yoweri Museveni (pictured) is re-elected as President of Uganda."
+	//var line2 = "Dutch prime minister Mark Rutte and his cabinet resign as a result of a child welfare fraud scandal."
+	//var line3 = "An earthquake on the Indonesian island of Sulawesi kills at least 92 people and injures more than 900 others."
+	var line4 = "Donald Trump becomes the first U.S. president to be impeached twice after the House of Representatives charges him with incitement of insurrection."
+
 	var palette color.Palette = color.Palette{
 		image.Transparent,
 		image.Black,
@@ -144,7 +168,10 @@ func main() {
 		panic(err)
 	}
 	dc.SetRGBA(0, 0, 0, 1)
-	dc.DrawStringAnchored("Foobar", width/2, height/2, 0.5, 0.5)
+	drawNewsLine(0, line4, width, height, dc)
+	drawNewsLine(1, line4, width, height, dc)
+	drawNewsLine(2, line4, width, height, dc)
+	drawNewsLine(3, line4, width, height, dc)
 	img1 := dc.Image()
 	bounds := img1.Bounds()
 
