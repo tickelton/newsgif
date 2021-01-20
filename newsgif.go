@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/fogleman/gg"
 	"image"
-	//"image/color"
-	"image/color/palette"
+	"image/color"
+	//"image/color/palette"
 	"image/draw"
 	"image/gif"
 	"io/ioutil"
@@ -79,50 +79,80 @@ func main() {
 	//	newsLines := getHeadlines()
 	//	fmt.Println(len(newsLines), cap(newsLines), newsLines[2])
 
-	//var width, height int = 380, 180
+	const width, height = 380, 180
 	var images []*image.Paletted
 	var delays []int
 
-	const S = 1024
-	dc := gg.NewContext(S, S)
-	dc.SetRGB(1, 1, 1)
+	/*
+		const S = 1024
+		dc := gg.NewContext(S, S)
+		dc.SetRGB(1, 1, 1)
+		dc.Clear()
+
+		if err := dc.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 18); err != nil {
+			panic(err)
+		}
+		dc.SetRGB(0, 0, 0)
+		s := "ONE DOES NOT SIMPLY"
+		n := 2 // "stroke" size
+		for dy := -n; dy <= n; dy++ {
+			for dx := -n; dx <= n; dx++ {
+				if dx*dx+dy*dy >= n*n {
+					// give it rounded corners
+					continue
+				}
+				x := S/2 + float64(dx)
+				y := S/2 + float64(dy)
+				dc.DrawStringAnchored(s, x, y, 0.5, 0.5)
+			}
+		}
+
+		img1 := dc.Image()
+		bounds := img1.Bounds()
+
+		dst := image.NewPaletted(bounds, palette.Plan9)
+		draw.Draw(dst, bounds, img1, bounds.Min, draw.Src)
+		images = append(images, dst)
+		delays = append(delays, 20)
+		dc.SetRGB(1, 1, 1)
+		dc.DrawStringAnchored(s, S/2, S/2, 0.5, 0.5)
+
+		img2 := dc.Image()
+		bounds2 := img2.Bounds()
+
+		dst2 := image.NewPaletted(bounds2, palette.Plan9)
+		draw.Draw(dst2, bounds2, img2, bounds2.Min, draw.Src)
+		images = append(images, dst2)
+		delays = append(delays, 20)
+	*/
+
+	var palette color.Palette = color.Palette{
+		image.Transparent,
+		image.Black,
+		image.White,
+		color.RGBA{0xEE, 0xEE, 0xEE, 255},
+		color.RGBA{0xCC, 0xCC, 0xCC, 255},
+		color.RGBA{0x99, 0x99, 0x99, 255},
+		color.RGBA{0x66, 0x66, 0x66, 255},
+		color.RGBA{0x33, 0x33, 0x33, 255},
+	}
+	dc := gg.NewContext(width, height)
+	dc.SetRGBA(1, 1, 1, 0)
 	dc.Clear()
 
-	if err := dc.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 96); err != nil {
+	if err := dc.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 18); err != nil {
 		panic(err)
 	}
-	dc.SetRGB(0, 0, 0)
-	s := "ONE DOES NOT SIMPLY"
-	n := 6 // "stroke" size
-	for dy := -n; dy <= n; dy++ {
-		for dx := -n; dx <= n; dx++ {
-			if dx*dx+dy*dy >= n*n {
-				// give it rounded corners
-				continue
-			}
-			x := S/2 + float64(dx)
-			y := S/2 + float64(dy)
-			dc.DrawStringAnchored(s, x, y, 0.5, 0.5)
-		}
-	}
-
+	dc.SetRGBA(0, 0, 0, 1)
+	dc.DrawStringAnchored("Foobar", width/2, height/2, 0.5, 0.5)
 	img1 := dc.Image()
 	bounds := img1.Bounds()
 
-	dst := image.NewPaletted(bounds, palette.Plan9)
+	dst := image.NewPaletted(bounds, palette)
 	draw.Draw(dst, bounds, img1, bounds.Min, draw.Src)
 	images = append(images, dst)
-	delays = append(delays, 20)
-	dc.SetRGB(1, 1, 1)
-	dc.DrawStringAnchored(s, S/2, S/2, 0.5, 0.5)
+	delays = append(delays, 0)
 
-	img2 := dc.Image()
-	bounds2 := img2.Bounds()
-
-	dst2 := image.NewPaletted(bounds2, palette.Plan9)
-	draw.Draw(dst2, bounds2, img2, bounds2.Min, draw.Src)
-	images = append(images, dst2)
-	delays = append(delays, 20)
 	f, err := os.OpenFile("rgb.gif", os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		fmt.Println(err)
