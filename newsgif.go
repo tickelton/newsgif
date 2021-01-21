@@ -16,6 +16,11 @@ import (
 	"strings"
 )
 
+type textImage struct {
+	img   *image.RGBA
+	width int
+}
+
 const itnUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=Template:In_the_news&formatversion=2&prop=extracts&exintro&explaintext&format=json"
 const (
 	Error   = 1
@@ -115,28 +120,29 @@ func mergeNewsLine(idx int, newsLine *image.Image, width int, height int, dc *gg
 }
 */
 
-func createTextImage(text string, dc *gg.Context) image.Image {
+func createTextImage(text string, dc *gg.Context) textImage {
 
 	const stroke = 1
 	stringWidth, _ := dc.MeasureString(text)
+	imgWidth := int(stringWidth + stroke*2 + 300)
 
-	ctx := gg.NewContext(int(stringWidth+stroke*2), newsLineHeight)
+	ctx := gg.NewContext(imgWidth, newsLineHeight)
 	ctx.SetRGBA(1, 1, 1, 0)
 	ctx.Clear()
 
 	ctx.SetRGBA(0, 0, 0, 1)
 	for dy := -stroke; dy <= stroke; dy++ {
 		for dx := -stroke; dx <= stroke; dx++ {
-			x := float64(stringWidth/2) + float64(dx)
+			x := float64(stringWidth/2+300) + float64(dx)
 			y := float64(newsLineHeight/2) + float64(dy)
 			ctx.DrawStringAnchored(text, x, y, 0.5, 0.5)
 		}
 	}
 
 	ctx.SetRGBA(1, 1, 1, 1)
-	ctx.DrawStringAnchored(text, float64(stringWidth/2), float64(newsLineHeight/2), 0.5, 0.5)
+	ctx.DrawStringAnchored(text, float64(stringWidth/2+300), float64(newsLineHeight/2), 0.5, 0.5)
 
-	return ctx.Image()
+	return textImage{img: ctx.Image().(*image.RGBA), width: imgWidth}
 }
 
 func main() {
@@ -147,6 +153,7 @@ func main() {
 	const width, height = 380, 180
 	var images []*image.Paletted
 	var delays []int
+	var disposals []byte
 
 	/*
 		const S = 1024
@@ -191,9 +198,9 @@ func main() {
 		delays = append(delays, 20)
 	*/
 
-	//var line1 = "Yoweri Museveni (pictured) is re-elected as President of Uganda."
-	//var line2 = "Dutch prime minister Mark Rutte and his cabinet resign as a result of a child welfare fraud scandal."
-	//var line3 = "An earthquake on the Indonesian island of Sulawesi kills at least 92 people and injures more than 900 others."
+	var line1 = "Yoweri Museveni (pictured) is re-elected as President of Uganda."
+	var line2 = "Dutch prime minister Mark Rutte and his cabinet resign as a result of a child welfare fraud scandal."
+	var line3 = "An earthquake on the Indonesian island of Sulawesi kills at least 92 people and injures more than 900 others."
 	var line4 = "Donald Trump becomes the first U.S. president to be impeached twice after the House of Representatives charges him with incitement of insurrection."
 
 	var palette color.Palette = color.Palette{
@@ -207,31 +214,56 @@ func main() {
 		color.RGBA{0x33, 0x33, 0x33, 255},
 	}
 	dc := gg.NewContext(width, height)
-	dc.SetRGBA(1, 1, 1, 0)
-	dc.Clear()
 
 	if err := dc.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 18); err != nil {
 		panic(err)
 	}
-	dc.SetRGBA(0, 0, 0, 1)
 	//	drawNewsLine(0, line4, width, height, dc)
 	//	drawNewsLine(1, line4, width, height, dc)
 	//	drawNewsLine(2, line4, width, height, dc)
 	//	drawNewsLine(3, line4, width, height, dc)
 
+	imageNewsLine1 := createTextImage(line1, dc)
+	imageNewsLine2 := createTextImage(line2, dc)
+	imageNewsLine3 := createTextImage(line3, dc)
 	imageNewsLine4 := createTextImage(line4, dc)
 
-	rgba := imageNewsLine4.(*image.RGBA)
-	cropped := rgba.SubImage(image.Rect(250, 0, 270, 20))
-	dc.DrawImage(cropped, 0, 100)
+	textMaxWidth := 0
+	for i := 0; i < 4; i++ {
+		textMaxWidth = imageNewsLine1.width
+		if imageNewsLine2.width > textMaxWidth {
+			textMaxWidth = imageNewsLine2.width
+		}
+		if imageNewsLine3.width > textMaxWidth {
+			textMaxWidth = imageNewsLine3.width
+		}
+		if imageNewsLine4.width > textMaxWidth {
+			textMaxWidth = imageNewsLine4.width
+		}
+	}
 
-	img1 := dc.Image()
-	bounds := img1.Bounds()
+	for i := 0; i < textMaxWidth; i += 10 {
+		dc.SetRGBA(1, 1, 1, 0)
+		dc.Clear()
 
-	dst := image.NewPaletted(bounds, palette)
-	draw.Draw(dst, bounds, img1, bounds.Min, draw.Src)
-	images = append(images, dst)
-	delays = append(delays, 0)
+		cropped1 := imageNewsLine1.img.SubImage(image.Rect(i, 0, i+300, 24))
+		dc.DrawImage(cropped1, 40-i, 64)
+		cropped2 := imageNewsLine2.img.SubImage(image.Rect(i, 0, i+300, 24))
+		dc.DrawImage(cropped2, 40-i, 64+1*24)
+		cropped3 := imageNewsLine3.img.SubImage(image.Rect(i, 0, i+300, 24))
+		dc.DrawImage(cropped3, 40-i, 64+2*24)
+		cropped4 := imageNewsLine4.img.SubImage(image.Rect(i, 0, i+300, 24))
+		dc.DrawImage(cropped4, 40-i, 64+3*24)
+
+		img1 := dc.Image()
+		bounds := img1.Bounds()
+
+		dst := image.NewPaletted(bounds, palette)
+		draw.Draw(dst, bounds, img1, bounds.Min, draw.Src)
+		images = append(images, dst)
+		delays = append(delays, 20)
+		disposals = append(disposals, gif.DisposalBackground)
+	}
 
 	f, err := os.OpenFile("rgb.gif", os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
@@ -240,8 +272,9 @@ func main() {
 	}
 	defer f.Close()
 	gif.EncodeAll(f, &gif.GIF{
-		Image: images,
-		Delay: delays,
+		Image:    images,
+		Delay:    delays,
+		Disposal: disposals,
 	})
 
 }
