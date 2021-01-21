@@ -7,7 +7,6 @@ import (
 	"github.com/fogleman/gg"
 	"image"
 	"image/color"
-	//"image/color/palette"
 	"image/draw"
 	"image/gif"
 	"io/ioutil"
@@ -80,45 +79,19 @@ func getHeadlines() []string {
 	return newsLines
 }
 
-/*
-func drawNewsLine(idx int, text string, width int, height int, dc *gg.Context) {
-
-	const stroke = 1
-	topOffset := 80 + 24*idx
-	//stringWidth, _ := fmt.Println(dc.MeasureString(text))
-
-	dc.SetRGBA(0, 0, 0, 1)
+func drawOutlinedText(text string, stroke int, ctx *gg.Context, x float64, y float64) {
+	ctx.SetRGBA(0, 0, 0, 1)
 	for dy := -stroke; dy <= stroke; dy++ {
 		for dx := -stroke; dx <= stroke; dx++ {
-			x := float64(width/2) + float64(dx)
-			y := float64(topOffset) + float64(dy)
-			dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
+			x := x + float64(dx)
+			y := y + float64(dy)
+			ctx.DrawStringAnchored(text, x, y, 0.5, 0.5)
 		}
 	}
 
-	dc.SetRGBA(1, 1, 1, 1)
-	dc.DrawStringAnchored(text, float64(width/2), float64(topOffset), 0.5, 0.5)
+	ctx.SetRGBA(1, 1, 1, 1)
+	ctx.DrawStringAnchored(text, x, y, 0.5, 0.5)
 }
-*/
-
-/*
-func mergeNewsLine(idx int, newsLine *image.Image, width int, height int, dc *gg.Context) {
-
-	topOffset := 80 + 24*idx
-
-	dc.SetRGBA(0, 0, 0, 1)
-	for dy := -stroke; dy <= stroke; dy++ {
-		for dx := -stroke; dx <= stroke; dx++ {
-			x := float64(width/2) + float64(dx)
-			y := float64(topOffset) + float64(dy)
-			dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
-		}
-	}
-
-	dc.SetRGBA(1, 1, 1, 1)
-	dc.DrawStringAnchored(text, float64(width/2), float64(topOffset), 0.5, 0.5)
-}
-*/
 
 func createTextImage(text string, dc *gg.Context) textImage {
 
@@ -130,78 +103,23 @@ func createTextImage(text string, dc *gg.Context) textImage {
 	ctx.SetRGBA(1, 1, 1, 0)
 	ctx.Clear()
 
-	ctx.SetRGBA(0, 0, 0, 1)
-	for dy := -stroke; dy <= stroke; dy++ {
-		for dx := -stroke; dx <= stroke; dx++ {
-			x := float64(stringWidth/2+300) + float64(dx)
-			y := float64(newsLineHeight/2) + float64(dy)
-			ctx.DrawStringAnchored(text, x, y, 0.5, 0.5)
-		}
+	if err := ctx.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 18); err != nil {
+		panic(err)
 	}
 
-	ctx.SetRGBA(1, 1, 1, 1)
-	ctx.DrawStringAnchored(text, float64(stringWidth/2+300), float64(newsLineHeight/2), 0.5, 0.5)
+	drawOutlinedText(text, stroke, ctx, float64(stringWidth/2+300), float64(newsLineHeight/2))
 
 	return textImage{img: ctx.Image().(*image.RGBA), width: imgWidth}
 }
 
 func main() {
 
-	//	newsLines := getHeadlines()
-	//	fmt.Println(len(newsLines), cap(newsLines), newsLines[2])
+	newsLines := getHeadlines()
 
 	const width, height = 380, 180
 	var images []*image.Paletted
 	var delays []int
 	var disposals []byte
-
-	/*
-		const S = 1024
-		dc := gg.NewContext(S, S)
-		dc.SetRGB(1, 1, 1)
-		dc.Clear()
-
-		if err := dc.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 18); err != nil {
-			panic(err)
-		}
-		dc.SetRGB(0, 0, 0)
-		s := "ONE DOES NOT SIMPLY"
-		n := 2 // "stroke" size
-		for dy := -n; dy <= n; dy++ {
-			for dx := -n; dx <= n; dx++ {
-				if dx*dx+dy*dy >= n*n {
-					// give it rounded corners
-					continue
-				}
-				x := S/2 + float64(dx)
-				y := S/2 + float64(dy)
-				dc.DrawStringAnchored(s, x, y, 0.5, 0.5)
-			}
-		}
-
-		img1 := dc.Image()
-		bounds := img1.Bounds()
-
-		dst := image.NewPaletted(bounds, palette.Plan9)
-		draw.Draw(dst, bounds, img1, bounds.Min, draw.Src)
-		images = append(images, dst)
-		delays = append(delays, 20)
-		dc.SetRGB(1, 1, 1)
-		dc.DrawStringAnchored(s, S/2, S/2, 0.5, 0.5)
-
-		img2 := dc.Image()
-		bounds2 := img2.Bounds()
-
-		dst2 := image.NewPaletted(bounds2, palette.Plan9)
-		draw.Draw(dst2, bounds2, img2, bounds2.Min, draw.Src)
-		images = append(images, dst2)
-		delays = append(delays, 20)
-	*/
-
-	var line1 = "Yoweri Museveni (pictured) is re-elected as President of Uganda."
-	var line2 = "Dutch prime minister Mark Rutte and his cabinet resign as a result of a child welfare fraud scandal."
-	var line3 = "An earthquake on the Indonesian island of Sulawesi kills at least 92 people and injures more than 900 others."
-	var line4 = "Donald Trump becomes the first U.S. president to be impeached twice after the House of Representatives charges him with incitement of insurrection."
 
 	var palette color.Palette = color.Palette{
 		image.Transparent,
@@ -215,18 +133,14 @@ func main() {
 	}
 	dc := gg.NewContext(width, height)
 
-	if err := dc.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 18); err != nil {
+	if err := dc.LoadFontFace("/usr/share/fonts/truetype/freefont/FreeSans.ttf", 24); err != nil {
 		panic(err)
 	}
-	//	drawNewsLine(0, line4, width, height, dc)
-	//	drawNewsLine(1, line4, width, height, dc)
-	//	drawNewsLine(2, line4, width, height, dc)
-	//	drawNewsLine(3, line4, width, height, dc)
 
-	imageNewsLine1 := createTextImage(line1, dc)
-	imageNewsLine2 := createTextImage(line2, dc)
-	imageNewsLine3 := createTextImage(line3, dc)
-	imageNewsLine4 := createTextImage(line4, dc)
+	imageNewsLine1 := createTextImage(newsLines[0], dc)
+	imageNewsLine2 := createTextImage(newsLines[1], dc)
+	imageNewsLine3 := createTextImage(newsLines[2], dc)
+	imageNewsLine4 := createTextImage(newsLines[3], dc)
 
 	textMaxWidth := 0
 	for i := 0; i < 4; i++ {
@@ -254,6 +168,17 @@ func main() {
 		dc.DrawImage(cropped3, 40-i, 64+2*24)
 		cropped4 := imageNewsLine4.img.SubImage(image.Rect(i, 0, i+300, 24))
 		dc.DrawImage(cropped4, 40-i, 64+3*24)
+
+		dc.DrawRoundedRectangle(1, 1, width-2, height-2, 20)
+		dc.SetRGBA(0, 0, 0, 1)
+		dc.SetLineWidth(3)
+		dc.Stroke()
+		dc.DrawRoundedRectangle(1, 1, width-2, height-2, 20)
+		dc.SetRGBA(1, 1, 1, 1)
+		dc.SetLineWidth(1)
+		dc.Stroke()
+
+		drawOutlinedText("newsgif", 1, dc, float64(width/2), float64(32))
 
 		img1 := dc.Image()
 		bounds := img1.Bounds()
