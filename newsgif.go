@@ -24,6 +24,7 @@ const (
 	Debug   = 4
 	Trace   = 5
 )
+const newsLineHeight = 24
 
 var verbose int
 
@@ -74,6 +75,7 @@ func getHeadlines() []string {
 	return newsLines
 }
 
+/*
 func drawNewsLine(idx int, text string, width int, height int, dc *gg.Context) {
 
 	const stroke = 1
@@ -91,6 +93,50 @@ func drawNewsLine(idx int, text string, width int, height int, dc *gg.Context) {
 
 	dc.SetRGBA(1, 1, 1, 1)
 	dc.DrawStringAnchored(text, float64(width/2), float64(topOffset), 0.5, 0.5)
+}
+*/
+
+/*
+func mergeNewsLine(idx int, newsLine *image.Image, width int, height int, dc *gg.Context) {
+
+	topOffset := 80 + 24*idx
+
+	dc.SetRGBA(0, 0, 0, 1)
+	for dy := -stroke; dy <= stroke; dy++ {
+		for dx := -stroke; dx <= stroke; dx++ {
+			x := float64(width/2) + float64(dx)
+			y := float64(topOffset) + float64(dy)
+			dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
+		}
+	}
+
+	dc.SetRGBA(1, 1, 1, 1)
+	dc.DrawStringAnchored(text, float64(width/2), float64(topOffset), 0.5, 0.5)
+}
+*/
+
+func createTextImage(text string, dc *gg.Context) image.Image {
+
+	const stroke = 1
+	stringWidth, _ := dc.MeasureString(text)
+
+	ctx := gg.NewContext(int(stringWidth+stroke*2), newsLineHeight)
+	ctx.SetRGBA(1, 1, 1, 0)
+	ctx.Clear()
+
+	ctx.SetRGBA(0, 0, 0, 1)
+	for dy := -stroke; dy <= stroke; dy++ {
+		for dx := -stroke; dx <= stroke; dx++ {
+			x := float64(stringWidth/2) + float64(dx)
+			y := float64(newsLineHeight/2) + float64(dy)
+			ctx.DrawStringAnchored(text, x, y, 0.5, 0.5)
+		}
+	}
+
+	ctx.SetRGBA(1, 1, 1, 1)
+	ctx.DrawStringAnchored(text, float64(stringWidth/2), float64(newsLineHeight/2), 0.5, 0.5)
+
+	return ctx.Image()
 }
 
 func main() {
@@ -168,10 +214,17 @@ func main() {
 		panic(err)
 	}
 	dc.SetRGBA(0, 0, 0, 1)
-	drawNewsLine(0, line4, width, height, dc)
-	drawNewsLine(1, line4, width, height, dc)
-	drawNewsLine(2, line4, width, height, dc)
-	drawNewsLine(3, line4, width, height, dc)
+	//	drawNewsLine(0, line4, width, height, dc)
+	//	drawNewsLine(1, line4, width, height, dc)
+	//	drawNewsLine(2, line4, width, height, dc)
+	//	drawNewsLine(3, line4, width, height, dc)
+
+	imageNewsLine4 := createTextImage(line4, dc)
+
+	rgba := imageNewsLine4.(*image.RGBA)
+	cropped := rgba.SubImage(image.Rect(250, 0, 270, 20))
+	dc.DrawImage(cropped, 0, 100)
+
 	img1 := dc.Image()
 	bounds := img1.Bounds()
 
