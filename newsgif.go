@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -75,7 +76,12 @@ func getHeadlines() []string {
 	// TODO: needs error handling
 	//fmt.Println(ok, content)
 
-	newsLines := strings.Split(strings.TrimSuffix(content, "\n"), "\n")
+	re := regexp.MustCompile(` \(pictured\)`)
+	newsLines := strings.Split(
+		re.ReplaceAllString(strings.TrimSuffix(content, "\n"), ""),
+		"\n",
+	)
+
 	return newsLines
 }
 
