@@ -143,22 +143,16 @@ func main() {
 		panic(err)
 	}
 
-	imageNewsLine1 := createTextImage(newsLines[0], dc)
-	imageNewsLine2 := createTextImage(newsLines[1], dc)
-	imageNewsLine3 := createTextImage(newsLines[2], dc)
-	imageNewsLine4 := createTextImage(newsLines[3], dc)
-
+	numNewsLines := len(newsLines)
+	if numNewsLines > 4 {
+		numNewsLines = 4
+	}
+	imageNewsLine := make([]textImage, numNewsLines)
 	textMaxWidth := 0
-	for i := 0; i < 4; i++ {
-		textMaxWidth = imageNewsLine1.width
-		if imageNewsLine2.width > textMaxWidth {
-			textMaxWidth = imageNewsLine2.width
-		}
-		if imageNewsLine3.width > textMaxWidth {
-			textMaxWidth = imageNewsLine3.width
-		}
-		if imageNewsLine4.width > textMaxWidth {
-			textMaxWidth = imageNewsLine4.width
+	for i := 0; i < numNewsLines; i++ {
+		imageNewsLine[i] = createTextImage(newsLines[i], dc)
+		if imageNewsLine[i].width > textMaxWidth {
+			textMaxWidth = imageNewsLine[0].width
 		}
 	}
 
@@ -166,14 +160,10 @@ func main() {
 		dc.SetRGBA(1, 1, 1, 0)
 		dc.Clear()
 
-		cropped1 := imageNewsLine1.img.SubImage(image.Rect(i, 0, i+300, 24))
-		dc.DrawImage(cropped1, 40-i, 64)
-		cropped2 := imageNewsLine2.img.SubImage(image.Rect(i, 0, i+300, 24))
-		dc.DrawImage(cropped2, 40-i, 64+1*24)
-		cropped3 := imageNewsLine3.img.SubImage(image.Rect(i, 0, i+300, 24))
-		dc.DrawImage(cropped3, 40-i, 64+2*24)
-		cropped4 := imageNewsLine4.img.SubImage(image.Rect(i, 0, i+300, 24))
-		dc.DrawImage(cropped4, 40-i, 64+3*24)
+		for j := 0; j < numNewsLines; j++ {
+			cropped := imageNewsLine[j].img.SubImage(image.Rect(i, 0, i+300, 24))
+			dc.DrawImage(cropped, 40-i, 64+j*24)
+		}
 
 		dc.DrawRoundedRectangle(1, 1, width-2, height-2, 20)
 		dc.SetRGBA(0, 0, 0, 1)
