@@ -76,7 +76,7 @@ func getHeadlines() []string {
 	// TODO: needs error handling
 	//fmt.Println(ok, content)
 
-	re := regexp.MustCompile(` \(pictured\)`)
+	re := regexp.MustCompile(` \(.*pictured\s*\)`)
 	newsLines := strings.Split(
 		re.ReplaceAllString(strings.TrimSuffix(content, "\n"), ""),
 		"\n",
